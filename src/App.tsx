@@ -1,19 +1,24 @@
+import { Chart } from "./components/Chart";
+
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App h-screen w-screen">
+      <div className="flex items-center justify-center content-center h-full w-full">
+        <Chart
+          edgeTitles={{ one: "One", two: "Two", three: "Three" }}
+          lines={[
+            {
+              label: "goal",
+              color: "blue",
+              values: {
+                one: 0.5,
+                two: 0.5,
+                three: 0.5,
+              },
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 }
