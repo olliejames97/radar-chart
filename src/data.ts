@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 export const ChartDataSchema = Type.Object({
   id: Type.String(),
@@ -15,3 +15,5 @@ export const ChartDataSchema = Type.Object({
     })
   ),
 });
+
+export type ChartData = Omit<Static<typeof ChartDataSchema>, "id">;

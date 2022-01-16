@@ -1,12 +1,25 @@
-import React from "react";
-import ReactDOM from "react-dom";
-
-import App from "./App";
-import "./index.css"; // Tell webpack that Button.js uses these styles
-
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById("root")
+import { render } from "react-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Nav } from "./components/Nav";
+import "./index.css";
+import { routes } from "./routes";
+const rootElement = document.getElementById("root");
+render(
+  <BrowserRouter>
+    <div className="font-mono bg-green-200">
+      <Nav />
+      <div className="px-10">
+        <Routes>
+          {routes.map((route) => (
+            <Route
+              key={route.route}
+              path={route.route}
+              element={route.component}
+            />
+          ))}
+        </Routes>
+      </div>
+    </div>
+  </BrowserRouter>,
+  rootElement
 );

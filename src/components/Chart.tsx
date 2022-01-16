@@ -1,35 +1,35 @@
-import { Static } from "@sinclair/typebox";
 //@ts-ignore
 import RadarChart from "react-svg-radar-chart";
 import "react-svg-radar-chart/build/css/index.css";
-import { ChartDataSchema } from "../data";
+import { ChartData, ChartDataSchema } from "../data";
+import Ajv from "ajv";
+const ajv = new Ajv().addKeyword("kind").addKeyword("modifier");
 
-type Props = Omit<Static<typeof ChartDataSchema>, "id">;
-
-export const Chart = ({
-  edgeTitles,
-  lines,
-  primaryColor,
-  backgroundColor,
-  textColor,
-  title,
-}: Props) => {
+export const Chart = (p: ChartData) => {
+  const validate = ajv.compile(ChartDataSchema);
+  const valid = validate({ id: "asda3", ...p });
+  if (!valid) {
+    return <p>Invalid Chart Data {JSON.stringify(validate.errors)}</p>;
+  }
+  const { edgeTitles, lines, primaryColor, backgroundColor, textColor, title } =
+    p;
   return (
     <div
       className="flex-column p-10 rounded-3xl m-10"
       style={{ backgroundColor }}
     >
       <h1 className="h1">{title}</h1>
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4" style={{ paddingLeft: "200px" }}>
         <RadarChart
           captions={edgeTitles}
           data={lines.map((line) => ({
             data: line.values,
             meta: { color: line.color },
           }))}
-          size={350}
+          size={550}
           options={
             {
+              captionMargin: 32,
               dots: true,
               scales: 10,
               scaleProps: (a: any) => {
@@ -41,14 +41,13 @@ export const Chart = ({
                 };
               },
               setViewBox: (e: any) => 4,
-              // @ts-ignore
               captionProps: (data: {
                 key: string;
                 caption: string;
                 angle: number;
               }) => ({
                 className: "font-mono",
-                fontSize: 16,
+                fontSize: 15,
                 fill: textColor,
                 color: primaryColor,
                 fontFamily: "monospace",
