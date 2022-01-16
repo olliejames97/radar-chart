@@ -9,14 +9,21 @@ export const Chart = (p: ChartData) => {
   const validate = ajv.compile(ChartDataSchema);
   const valid = validate({ id: "asda3", ...p });
   if (!valid) {
-    return <p>Invalid Chart Data {JSON.stringify(validate.errors)}</p>;
+    return (
+      <div>
+        Invalid Chart Data{" "}
+        {validate.errors?.map((e) => (
+          <p className="ml-4">{e.message}</p>
+        ))}
+      </div>
+    );
   }
   const { edgeTitles, lines, primaryColor, backgroundColor, textColor, title } =
     p;
   return (
     <div
       className="flex-column p-10 rounded-3xl m-10"
-      style={{ backgroundColor }}
+      style={{ backgroundColor, color: textColor }}
     >
       <h1 className="h1">{title}</h1>
       <div className="flex-1 p-4" style={{ paddingLeft: "200px" }}>

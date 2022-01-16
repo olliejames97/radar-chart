@@ -8,3 +8,10 @@
   line-height: 1.5;
   color: #6c757d;
 }
+
+input {
+  padding: 1px;
+  padding-left: 2px;
+  border-width: 1px;
+  border-color: black;
+}

@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { times } from "lodash";
 import { ChartData } from "../../data";
 import { Chart } from "../Chart";
+import { HexColorPicker } from "react-colorful";
+
 export const NewPage = () => {
   const [chartData, setChartData] = useState<any>({});
   return (
@@ -21,9 +23,9 @@ export const NewPage = () => {
 
 const defaults = {
   title: "My Chart",
-  primaryColor: "#ff0000",
-  backgroundColor: "#ffffff",
-  textColor: "#000000",
+  primaryColor: "#ffe8a2",
+  backgroundColor: "#ffe8a2",
+  textColor: "#ffffff",
 };
 
 const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
@@ -32,11 +34,11 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
     register,
     watch,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm();
   watch();
   const onSubmit = (values: any) => {
-    console.log(values);
     let myData = {
       title: values.title ? values.title : defaults.title,
       primaryColor: values.primaryColor
@@ -46,28 +48,18 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       textColor: values.textColor ? values.textColor : defaults.textColor,
       edgeTitles: Object.assign(
         {},
-        times(numEdges, (index) =>
-          `edge.${index}.title` in values
-            ? values[`edge.${index}.title`]
-            : `Step ${index + 1}`
+        times(
+          numEdges,
+          (index) => values.edge[index].title || `Step ${index + 1}`
         )
       ),
       lines: times(numLines, (index) => {
-        const label =
-          `line.${index}.label` in values
-            ? values[`line.${index}.label`]
-            : `Line ${index + 1}`;
-        const color =
-          `lines.${index}.color` in values
-            ? values[`lines.${index}.color`]
-            : `green`;
-
+        const label = values.line[index].label || `Line ${index + 1}`;
+        const color = values.line[index].color || `green`;
         const data = Object.assign(
           {},
           times(numEdges, (edgeIndex) => {
-            return `line.${index}.values.${edgeIndex}` in values
-              ? values[`line.${index}.values.${edgeIndex}`]
-              : 1;
+            return Number(values.line[index].values[edgeIndex]) || 1;
           })
         );
 
@@ -83,6 +75,7 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
   return (
     <form
       className="flex-col flex space-y-4 text-sm bg-green-400 p-4 rounded"
+      style={{ maxHeight: "90vh", overflowY: "scroll" }}
       onSubmit={onSubmit}
     >
       <div>
@@ -97,8 +90,13 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       </div>
       <div>
         <p>Primary Colour</p>
-        <input
+        <ColorField
+          color={getValues("primaryColor") || "#ff0000"}
+          onChangeColor={(col) => {
+            setValue("primaryColor", col);
+          }}
           placeholder={defaults.primaryColor}
+          value={getValues("primaryColor") || "#ff0000"}
           className="ml-4"
           type="text"
           {...register("primaryColor", { required: true })}
@@ -107,8 +105,13 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       </div>
       <div>
         <p>Background Colour</p>
-        <input
+        <ColorField
+          color={getValues("backgroundColor") || defaults.backgroundColor}
+          onChangeColor={(col) => {
+            setValue("backgroundColor", col);
+          }}
           placeholder={defaults.backgroundColor}
+          value={getValues("backgroundColor") || defaults.backgroundColor}
           className="ml-4"
           type="text"
           {...register("backgroundColor", { required: true })}
@@ -117,8 +120,13 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       </div>
       <div>
         <p>Text Colour</p>
-        <input
-          placeholder={defaults.textColor}
+        <ColorField
+          color={getValues("textColor") || defaults.textColor}
+          onChangeColor={(col) => {
+            setValue("textColor", col);
+          }}
+          placeholder={defaults.backgroundColor}
+          value={getValues("textColor") || defaults.textColor}
           className="ml-4"
           type="text"
           {...register("textColor", { required: true })}
@@ -127,11 +135,11 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       </div>
       <div className="">
         <p>Edges</p>
-        <div className="ml-4 space-y-1">
+        <div className="ml-4 space-y-2">
           {Array.from({ length: numEdges }, (_, index) => {
             const edgeIndex = index;
             return (
-              <div>
+              <div className="p-2 rounded-lg bg-green-500">
                 <p>{edgeIndex}</p>
                 <div className="ml-4">
                   <p>Title</p>
@@ -156,13 +164,20 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
       </div>
       <div>
         <p>Lines</p>
-        <div className="ml-4 space-y-1">
+        <div className="ml-4 space-y-2">
           {times(numLines, (index) => {
             const lineIndex = index;
             return (
-              <div key={lineIndex}>
+              <div
+                key={lineIndex}
+                style={{
+                  backgroundColor:
+                    getValues(`line.${lineIndex}.color`) || undefined,
+                }}
+                className="p-4 rounded-lg"
+              >
                 <p>{lineIndex}</p>
-                <div className="ml-4 space-y-1">
+                <div className="space-y-1">
                   <p>Label</p>
                   <input
                     placeholder={`Line ${lineIndex + 1}`}
@@ -171,17 +186,23 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
                     {...register(`line.${lineIndex}.label`, { required: true })}
                   />
                   <p>Color</p>
-                  <input
+                  <ColorField
+                    color={getValues(`line.${lineIndex}.color`) || "green"}
+                    onChangeColor={(col) => {
+                      setValue(`line.${lineIndex}.color`, col);
+                    }}
+                    placeholder={defaults.backgroundColor}
+                    value={getValues(`line.${lineIndex}.color`) || "green"}
                     className="ml-4"
-                    placeholder="green"
                     type="text"
                     {...register(`line.${lineIndex}.color`, { required: true })}
                   />
+
                   <p>Values</p>
                   <div className="space-y-1">
                     {times(numEdges, (index) => {
                       const key =
-                        getValues(`edge.${index}.title`) ?? `Step ${index + 1}`;
+                        getValues(`edge.${index}.title`) || `Step ${index + 1}`;
                       return (
                         <div className="ml-4" key={key}>
                           <p>{key}</p>
@@ -204,7 +225,7 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
           <button
             className="underline"
             type="button"
-            onClick={() => setNumLines(numEdges + 1)}
+            onClick={() => setNumLines(numLines + 1)}
           >
             Add Line
           </button>
@@ -221,5 +242,39 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
         </button>
       </div>
     </form>
+  );
+};
+
+const ColorField = ({
+  onChangeColor,
+  color,
+  ...otherProps
+}: {
+  onChangeColor: (col: string) => void;
+  color: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) => {
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  return (
+    <div
+      onFocus={(e) => {
+        setIsPickerVisible(true);
+      }}
+      onBlur={(e) => {
+        setIsPickerVisible(false);
+      }}
+    >
+      <input
+        type="text"
+        {...otherProps}
+        style={{ backgroundColor: color, cursor: "pointer" }}
+      />
+      {isPickerVisible && (
+        <HexColorPicker
+          color={color}
+          onChange={onChangeColor}
+          style={{ marginLeft: 8 }}
+        />
+      )}
+    </div>
   );
 };
