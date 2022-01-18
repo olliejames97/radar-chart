@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { times } from "lodash";
 import { ChartData } from "../../data";
@@ -10,8 +10,13 @@ export const NewPage = () => {
   return (
     <>
       <div className="flex flex-row">
-        <div className="max-w-md absolute right-8">
-          <ChartForm onUpdate={setChartData} />
+        <div className="absolute right-8">
+          <ChartForm
+            onUpdate={setChartData}
+            onComplete={() => {
+              console.log("done");
+            }}
+          />
         </div>
         <div style={{ flex: 1 }}>
           <Chart {...chartData} />
@@ -25,12 +30,17 @@ const defaults = {
   title: "My Chart",
   primaryColor: "#ffe8a2",
   backgroundColor: "#ffe8a2",
-  textColor: "#ffffff",
+  textColor: "#000000",
 };
 
-const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
+const ChartForm = ({
+  onUpdate,
+  onComplete,
+}: {
+  onUpdate: (c: ChartData) => void;
+  onComplete: () => void;
+}) => {
   const {
-    handleSubmit,
     register,
     watch,
     getValues,
@@ -38,8 +48,17 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
     formState: { errors },
   } = useForm();
   watch();
-  const onSubmit = (values: any) => {
-    let myData = {
+  const [numEdges, setNumEdges] = useState(1);
+  const [numLines, setNumLines] = useState(1);
+  const refresh = useCallback(
+    (values: any) => {
+      onUpdate(formatFormData(values) as any);
+    },
+    [numEdges, numLines, onUpdate]
+  );
+
+  const formatFormData = (values: any) => {
+    return {
       title: values.title ? values.title : defaults.title,
       primaryColor: values.primaryColor
         ? values.primaryColor
@@ -66,17 +85,20 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
         return { label, color, values: data };
       }),
     };
-
-    onUpdate(myData as any);
-    console.log(myData);
   };
-  const [numEdges, setNumEdges] = useState(1);
-  const [numLines, setNumLines] = useState(1);
+
+  useEffect(() => {
+    refresh(getValues());
+  }, [onUpdate, refresh, getValues]);
   return (
     <form
       className="flex-col flex space-y-4 text-sm bg-green-400 p-4 rounded"
       style={{ maxHeight: "90vh", overflowY: "scroll" }}
-      onSubmit={onSubmit}
+      onSubmit={refresh}
+      onChange={() => {
+        console.log("change");
+        refresh(getValues());
+      }}
     >
       <div>
         <p>Title</p>
@@ -234,11 +256,12 @@ const ChartForm = ({ onUpdate }: { onUpdate: (c: ChartData) => void }) => {
           value="submit"
           type="button"
           onClick={() => {
-            onSubmit(getValues());
+            refresh(getValues());
+            onComplete();
           }}
-          className="pt-4 underline"
+          className="mt-4 px-4 p-2 underline bg-green-600"
         >
-          Save
+          Done
         </button>
       </div>
     </form>
