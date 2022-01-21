@@ -1,5 +1,6 @@
 import React from "react";
 import { ChartPage } from "./components/pages/Chart";
+import { HomePage } from "./components/pages/Home";
 import { NewPage } from "./components/pages/New";
 
 export const routes: {
@@ -11,7 +12,7 @@ export const routes: {
   {
     label: "Home",
     route: "/",
-    component: <div>Home</div>,
+    component: <HomePage />,
   },
   {
     label: "New",
