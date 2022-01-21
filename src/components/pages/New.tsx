@@ -6,16 +6,18 @@ import { Chart } from "../Chart";
 import { HexColorPicker } from "react-colorful";
 import Ajv from "ajv";
 import { useAddData } from "../../storage";
+import { useNavigate } from "react-router-dom";
 
+const shortid = require("shortid");
 const ajv = new Ajv().addKeyword("kind").addKeyword("modifier");
 
 export const NewPage = () => {
   const [chartData, setChartData] = useState<any>({});
   const { loading, error, response, submit } = useAddData();
   const validate = ajv.compile(ChartDataSchema);
-
+  const navigate = useNavigate();
   const onSubmit = () => {
-    const data = { id: "asdf", ...chartData };
+    const data = { id: shortid.generate(), ...chartData };
     const valid = validate(data);
     if (valid) {
       submit(data);
@@ -26,6 +28,9 @@ export const NewPage = () => {
 
   useEffect(() => {
     console.log({ loading, error, response });
+    if (!error && !loading && response) {
+      navigate("/charts/" + response.id);
+    }
   }, [loading, error, response]);
   return (
     <>
@@ -49,7 +54,7 @@ export const NewPage = () => {
 
 const defaults = {
   title: "My Chart",
-  primaryColor: "#ffe8a2",
+  primaryColor: "#ff9bfd",
   backgroundColor: "#ffe8a2",
   textColor: "#000000",
 };
@@ -69,8 +74,8 @@ const ChartForm = ({
     formState: { errors },
   } = useForm();
   watch();
-  const [numEdges, setNumEdges] = useState(1);
-  const [numLines, setNumLines] = useState(1);
+  const [numEdges, setNumEdges] = useState(0);
+  const [numLines, setNumLines] = useState(0);
   const refresh = useCallback(
     (values: any) => {
       onUpdate(formatFormData(values) as any);
@@ -134,12 +139,12 @@ const ChartForm = ({
       <div>
         <p>Primary Colour</p>
         <ColorField
-          color={getValues("primaryColor") || "#ff0000"}
+          color={getValues("primaryColor") || defaults.primaryColor}
           onChangeColor={(col) => {
             setValue("primaryColor", col);
           }}
           placeholder={defaults.primaryColor}
-          value={getValues("primaryColor") || "#ff0000"}
+          value={getValues("primaryColor") || defaults.primaryColor}
           className="ml-4"
           type="text"
           {...register("primaryColor", { required: true })}
@@ -178,22 +183,27 @@ const ChartForm = ({
       </div>
       <div className="">
         <p>Edges</p>
-        <div className="ml-4 space-y-2">
+        <div className="ml-4 space-y-2 relative">
           {Array.from({ length: numEdges }, (_, index) => {
             const edgeIndex = index;
             return (
-              <div className="p-2 rounded-lg bg-green-500">
-                <p>{edgeIndex}</p>
-                <div className="ml-4">
-                  <p>Title</p>
-                  <input
-                    placeholder={`Step ${edgeIndex + 1}`}
-                    className="ml-4"
-                    type="text"
-                    {...register(`edge.${edgeIndex}.title`, { required: true })}
-                  />
+              <>
+                <div className="p-2 rounded-lg bg-green-500 relative">
+                  <p>{edgeIndex}</p>
+
+                  <div className="ml-4">
+                    <p>Title</p>
+                    <input
+                      placeholder={`Step ${edgeIndex + 1}`}
+                      className="ml-4"
+                      type="text"
+                      {...register(`edge.${edgeIndex}.title`, {
+                        required: true,
+                      })}
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             );
           })}
           <button
@@ -203,11 +213,18 @@ const ChartForm = ({
           >
             Add Edge
           </button>
+          <button
+            className="underline absolute right-0"
+            type="button"
+            onClick={() => setNumEdges(numEdges - 1)}
+          >
+            Remove Edge
+          </button>
         </div>
       </div>
       <div>
         <p>Lines</p>
-        <div className="ml-4 space-y-2">
+        <div className="ml-4 space-y-2 relative">
           {times(numLines, (index) => {
             const lineIndex = index;
             return (
@@ -271,6 +288,13 @@ const ChartForm = ({
             onClick={() => setNumLines(numLines + 1)}
           >
             Add Line
+          </button>
+          <button
+            className="underline absolute right-0"
+            type="button"
+            onClick={() => setNumLines(numLines - 1)}
+          >
+            Remove Line
           </button>
         </div>
         <button

@@ -33,7 +33,7 @@ export const Chart = (p: ChartData) => {
             data: line.values,
             meta: { color: line.color },
           }))}
-          size={550}
+          size={650}
           options={
             {
               captionMargin: 32,
@@ -47,7 +47,7 @@ export const Chart = (p: ChartData) => {
                   fillOpacity: 0.3,
                 };
               },
-              setViewBox: (e: any) => 4,
+
               captionProps: (data: {
                 key: string;
                 caption: string;
