@@ -26,7 +26,7 @@ export const Chart = (p: ChartData) => {
       style={{ backgroundColor, color: textColor }}
     >
       <h1 className="h1">{title}</h1>
-      <div className="flex-1 p-4" style={{ paddingLeft: "200px" }}>
+      <div className="flex-1 flex p-4 justify-center">
         <RadarChart
           captions={edgeTitles}
           data={lines.map((line) => ({

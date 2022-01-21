@@ -1,12 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { times } from "lodash";
-import { ChartData } from "../../data";
+import { ChartData, ChartDataSchema } from "../../data";
 import { Chart } from "../Chart";
 import { HexColorPicker } from "react-colorful";
+import Ajv from "ajv";
+import { useAddData } from "../../storage";
+
+const ajv = new Ajv().addKeyword("kind").addKeyword("modifier");
 
 export const NewPage = () => {
   const [chartData, setChartData] = useState<any>({});
+  const { loading, error, response, submit } = useAddData();
+  const validate = ajv.compile(ChartDataSchema);
+
+  const onSubmit = () => {
+    const data = { id: "asdf", ...chartData };
+    const valid = validate(data);
+    if (valid) {
+      submit(data);
+    } else {
+      console.log("invalid data", validate.errors);
+    }
+  };
+
+  useEffect(() => {
+    console.log({ loading, error, response });
+  }, [loading, error, response]);
   return (
     <>
       <div className="flex flex-row">
@@ -14,7 +34,8 @@ export const NewPage = () => {
           <ChartForm
             onUpdate={setChartData}
             onComplete={() => {
-              console.log("done");
+              console.log("submitting");
+              onSubmit();
             }}
           />
         </div>
